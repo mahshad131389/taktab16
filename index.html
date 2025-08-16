@@ -1,0 +1,68 @@
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <style>
+    body { margin:0; padding:0; overflow:hidden; background:#000; }
+  </style>
+</head>
+<body>
+
+<a-scene mindar-image="imageTargetSrc: cow17.mind;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+  
+  <a-assets>
+    <video id="myvideo" autoplay loop muted playsinline webkit-playsinline preload="auto" crossorigin="anonymous">
+      <source src="./output2.webm" type="video/webm">
+    </video>
+  </a-assets>
+
+  <!-- دوربین با smoothing -->
+  <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+  <!-- Entity ثابت برای ویدئو -->
+  <a-entity mindar-image-target="targetIndex: 0">
+    <a-entity position="0 0 0">
+      <a-video id="videoEntity"
+        src="#myvideo"
+        width="3"
+        height="1.5"
+        position="0 0 0"
+        rotation="0 0 0">
+      </a-video>
+    </a-entity>
+  </a-entity>
+</a-scene>
+
+<script>
+const video = document.getElementById("myvideo");
+const videoEntity = document.getElementById("videoEntity");
+
+// شروع ویدیو با لمس یا کلیک در گوشی‌های قدیمی
+function playVideo() {
+  if (video.paused) {
+    video.play().catch(err => console.log("Autoplay error:", err));
+  }
+}
+document.addEventListener("touchstart", playVideo, { once: true });
+document.addEventListener("click", playVideo, { once: true });
+
+// smoothing برای کاهش لرزش
+AFRAME.registerComponent('smooth-video', {
+  init: function() {
+    this.lastRotation = {x:0, y:0, z:0};
+  },
+  tick: function () {
+    const r = videoEntity.object3D.rotation;
+    r.x = THREE.MathUtils.lerp(this.lastRotation.x, r.x, 0.1);
+    r.y = THREE.MathUtils.lerp(this.lastRotation.y, r.y, 0.1);
+    r.z = THREE.MathUtils.lerp(this.lastRotation.z, r.z, 0.1);
+    this.lastRotation = {x:r.x, y:r.y, z:r.z};
+  }
+});
+videoEntity.setAttribute("smooth-video", "");
+</script>
+
+</body>
+</html>
+
